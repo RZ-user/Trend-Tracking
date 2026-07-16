@@ -526,19 +526,8 @@ function markInterfaceReady() {
 
 function updateWorkspaceHeading() {
   const meta = WORKSPACE_META[state.activeView] || WORKSPACE_META.decision;
-  const item = current();
   const title = $("viewTitle");
-  const subtitle = $("viewSubtitle");
   if (title) title.textContent = meta.title;
-  if (!subtitle) return;
-  const suffix = state.activeView === "decision"
-    ? item?.state_label
-    : state.activeView === "environment"
-      ? "环境确认"
-      : "判断顺序与指标定义";
-  subtitle.textContent = item
-    ? `${displaySymbol(item)} · ${item.date} · ${suffix}`
-    : meta.fallback;
 }
 
 function setWorkspaceView(view, { focus = false } = {}) {
@@ -636,7 +625,7 @@ function renderTabs() {
     button.className = `symbol-tab ${item.symbol === state.selected ? "active" : ""}`;
     button.dataset.symbol = item.symbol;
     const viewLabel = String(item.asset_type || "").includes("A股") ? "A 股" : "纳指";
-    button.innerHTML = `<strong>${escapeHtml(viewLabel)}</strong>`;
+    button.innerHTML = `<strong>${escapeHtml(viewLabel)}</strong><span>${escapeHtml(displaySymbol(item))}</span>`;
     button.setAttribute("aria-label", `${viewLabel}工作区：${displaySymbol(item)}`);
     button.addEventListener("click", async () => {
       state.selected = item.symbol;
@@ -845,7 +834,7 @@ function buildAllocationSankey(snapshot) {
     const endX = flow.target.x;
     const controlOne = startX + (endX - startX) * 0.42;
     const controlTwo = startX + (endX - startX) * 0.58;
-    gradients.push(`<linearGradient id="${gradientId}" x1="0" x2="1"><stop offset="0" stop-color="${flow.source.color}"/><stop offset="1" stop-color="${flow.target.color}"/></linearGradient>`);
+    gradients.push(`<linearGradient id="${gradientId}" gradientUnits="userSpaceOnUse" x1="${startX}" y1="${y1.toFixed(2)}" x2="${endX}" y2="${y2.toFixed(2)}"><stop offset="0" stop-color="${flow.source.color}"/><stop offset="1" stop-color="${flow.target.color}"/></linearGradient>`);
     return `<path d="M ${startX} ${y1.toFixed(2)} C ${controlOne.toFixed(2)} ${y1.toFixed(2)}, ${controlTwo.toFixed(2)} ${y2.toFixed(2)}, ${endX} ${y2.toFixed(2)}" fill="none" stroke="url(#${gradientId})" stroke-width="${strokeWidth.toFixed(2)}" stroke-opacity="0.52"><title>${escapeHtml(flow.source.name)} → ${escapeHtml(flow.target.name)} ${flow.amount.toFixed(1)}%</title></path>`;
   }).join("");
 
@@ -919,7 +908,7 @@ function renderAllocationFlow(snapshot) {
   }
   container.innerHTML = `
     <div class="allocation-flow-head">
-      <div><span>仓位与资金流</span><strong>当前仓位 → 本期执行仓位 → 策略中枢仓位</strong></div>
+      <div><span>仓位与资金流</span></div>
     </div>
     <div class="allocation-sankey-scroll">${buildAllocationSankey(snapshot)}</div>
   `;
@@ -946,10 +935,6 @@ function renderSelected() {
   const item = current();
   if (!item) return;
   const maArrangement = movingAverageArrangement(item);
-  const personalized = personalizedExecution(item);
-  const basketActual = personalized.actual === null ? "待填写" : `${personalized.actual.toFixed(1)}%`;
-  const basketTarget = personalized.target === null ? "待填写" : `${personalized.target.toFixed(1)}%`;
-  const basketGap = personalized.gap === null ? "待计算" : `${personalized.gap >= 0 ? "+" : ""}${personalized.gap.toFixed(1)}pp`;
   $("currentSymbol").textContent = `${displaySymbol(item)} · ${fmtNum(item.price)}`;
 
   const pill = $("statePill");
@@ -960,11 +945,6 @@ function renderSelected() {
   const rows = [
     ["市场环境", marketPhaseText(item)],
     ["均线排列", maArrangement.label],
-    ["对应篮子", personalized.definition.name],
-    ["篮子实际", basketActual],
-    ["本期执行仓位", basketTarget],
-    ["篮子缺口", basketGap],
-    ["日期", item.date],
     ["50 日均线", fmtNum(item.ma50)],
     ["100 日均线", fmtNum(item.ma100)],
     ["200 日均线", fmtNum(item.ma200)],
@@ -1551,7 +1531,6 @@ function setupExecutionSettings() {
   const dialog = $("executionSettings");
   const form = $("executionSettingsForm");
   if (!dialog || !form) return;
-  $("executionSettingsBtn")?.addEventListener("click", openExecutionSettings);
   $("closeExecutionSettingsBtn")?.addEventListener("click", () => dialog.close());
   $("resetExecutionSettingsBtn")?.addEventListener("click", () => fillExecutionSettingsForm(DEFAULT_FUND_BASKET_SETTINGS));
   document.addEventListener("click", (event) => {
