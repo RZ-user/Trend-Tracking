@@ -1,0 +1,15 @@
+{
+  "name": "trend-tracking-pages",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "export:pages": "tsx scripts/export-github-pages.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6"
+  },
+  "type": "module"
+}
