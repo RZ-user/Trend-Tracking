@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b0b0d" />
+    <title>趋势跟踪系统</title>
+    <link rel="icon" href="data:," />
+    <script>
+      if (window.location.protocol === "file:") {
+        window.location.replace(`http://127.0.0.1:8765/dashboard.html${window.location.search}${window.location.hash}`);
+      }
+    </script>
+    <link rel="stylesheet" href="/static-app.css" />
+  </head>
+  <body>
+    <main class="shell app-shell">
+      <aside class="app-sidebar" aria-label="主导航">
+        <div class="sidebar-brand">
+          <span class="brand-signal" aria-hidden="true"><i></i><i></i><i></i></span>
+          <div>
+            <h1>趋势跟踪</h1>
+            <small>PRIVATE TERMINAL</small>
+          </div>
+        </div>
+        <nav class="primary-nav" aria-label="工作区">
+          <button type="button" class="primary-nav-item active" data-workspace-view="decision" aria-current="page">
+            <span>01</span><strong>决策</strong><small>价格与执行</small>
+          </button>
+          <button type="button" class="primary-nav-item" data-workspace-view="environment">
+            <span>02</span><strong>环境</strong><small>宏观与风险</small>
+          </button>
+          <button type="button" class="primary-nav-item" data-workspace-view="guide">
+            <span>03</span><strong>说明</strong><small>指标定义</small>
+          </button>
+        </nav>
+        <div class="sidebar-footer">
+          <span class="privacy-dot" aria-hidden="true"></span>
+          <span>仅本人可见</span>
+        </div>
+      </aside>
+
+      <section class="app-content">
+        <header class="topbar">
+          <div class="view-heading">
+            <h2 id="viewTitle">决策看板</h2>
+            <p id="viewSubtitle">等待数据</p>
+          </div>
+          <div class="topbar-controls">
+            <nav class="symbol-tabs market-view-tabs" id="symbolTabs" aria-label="市场视图"></nav>
+            <div class="top-actions">
+              <button id="executionSettingsBtn" class="icon-button" title="管理基金篮子" aria-label="打开基金篮子管理"><span aria-hidden="true">⚙</span></button>
+              <button id="refreshBtn" class="icon-button" title="立即更新行情" aria-label="立即更新行情"><span aria-hidden="true">↻</span></button>
+              <div class="run-status" id="runStatus" aria-live="polite">等待数据</div>
+            </div>
+          </div>
+        </header>
+
+        <section class="workspace">
+          <section class="main-panel">
+            <section class="workspace-view active" data-view-panel="decision" aria-label="决策工作区">
+          <section class="summary-panel framework-band" aria-labelledby="summaryTitle">
+            <div class="layer-head">
+              <h3 id="summaryTitle">决策与调平</h3>
+              <span id="summaryContext">等待数据</span>
+            </div>
+            <div id="changeDigest" class="change-digest" aria-live="polite" hidden></div>
+            <section id="decisionOutput" class="decision-output" aria-label="页面核心输出"></section>
+            <section id="fundBasketOverview" class="allocation-flow-panel" aria-label="仓位与资金流"></section>
+          </section>
+          <div class="analysis-grid">
+            <div class="chart-area">
+              <div class="chart-head">
+                <div>
+                  <h2>价格与关键线</h2>
+                </div>
+                <div class="chart-tools">
+                  <button id="zoomOutBtn" class="tool-button" title="缩小">−</button>
+                  <button id="zoomInBtn" class="tool-button" title="放大">＋</button>
+                  <button id="resetZoomBtn" class="tool-button wide" title="复位">复位</button>
+                  <button id="fullscreenChartBtn" class="tool-button fullscreen-chart-button" title="全屏查看" aria-label="全屏查看价格图">⛶</button>
+                </div>
+                <div class="legend">
+                  <span><i class="line-icon price"></i>价格</span>
+                  <button type="button" class="legend-toggle" data-line-toggle="ma50" data-tip="近 50 个交易日平均收盘价，用于观察中期趋势。点击显示或隐藏。" aria-pressed="false"><i class="line-icon ma50"></i>50日均线</button>
+                  <button type="button" class="legend-toggle" data-line-toggle="ma100" data-tip="近 100 个交易日平均收盘价，用于观察中长期趋势的过渡。点击显示或隐藏。" aria-pressed="false"><i class="line-icon ma100"></i>100日均线</button>
+                  <button type="button" class="legend-toggle active" data-line-toggle="ma200" data-tip="近 200 个交易日平均收盘价，用于判断长期牛熊环境。点击显示或隐藏。" aria-pressed="true"><i class="line-icon ma200"></i>200日均线</button>
+                  <span><i class="line-icon defense"></i>防守线/止损</span>
+                  <span><i class="line-icon breakout"></i>突破线/确认</span>
+                  <span data-tip="从下跌或回撤后反弹约 6%，但尚未突破确认点，属于观察性回升。"><i class="marker-icon red-hollow"></i>自然回升</span>
+                  <span data-tip="自然回升后继续突破关键高点或确认线，主趋势转强，按进攻仓位执行。"><i class="marker-icon red-solid"></i>上升趋势</span>
+                  <span data-tip="从上涨或回升后回落约 6%，但尚未跌破确认点，属于观察性调整。"><i class="marker-icon green-hollow"></i>自然回撤</span>
+                  <span data-tip="自然回撤后继续跌破关键低点或防守线，主趋势转弱，按防守仓位执行。"><i class="marker-icon green-solid"></i>下降趋势</span>
+                  <span data-tip="下降趋势中的短期反弹，尚未改变主趋势，通常只保持小额参与。"><i class="marker-icon red-diamond"></i>次级回升</span>
+                  <span data-tip="上升趋势中的短期回落，尚未改变主趋势，重点观察防守线是否失守。"><i class="marker-icon green-diamond"></i>次级回撤</span>
+                  <span><i class="marker-icon key-red"></i>上涨关键点</span>
+                  <span><i class="marker-icon key-green"></i>下跌关键点</span>
+                </div>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="priceChart" width="1200" height="520"></canvas>
+                <div id="chartHoverCard" class="chart-hover-card" hidden></div>
+              </div>
+            </div>
+            <aside class="metrics-panel">
+              <div class="metrics-head">
+                <span id="statePill" class="state-pill">--</span>
+                <strong id="currentSymbol">--</strong>
+              </div>
+              <div id="executionPlan" class="execution-plan"></div>
+              <dl class="metric-list" id="metricList"></dl>
+            </aside>
+          </div>
+          <div class="notes-grid">
+            <section class="trend-history-panel">
+              <div class="trend-history-head">
+                <h3>趋势变化</h3>
+                <span id="timelineRange">与价格图同步</span>
+              </div>
+              <div id="timelineWrap" class="state-timeline-wrap">
+                <div id="stateTimeline" class="state-timeline"></div>
+                <div id="timelineTooltip" class="timeline-tooltip" hidden></div>
+              </div>
+              <div class="timeline-axis">
+                <span id="timelineStart">--</span>
+                <span id="timelineMiddle">--</span>
+                <span id="timelineEnd">--</span>
+              </div>
+              <details class="transition-details">
+                <summary>
+                  <span>最近变更明细</span>
+                  <small id="transitionCount">0 次</small>
+                </summary>
+                <ul id="notesList"></ul>
+              </details>
+            </section>
+          </div>
+            </section>
+
+            <section class="workspace-view" data-view-panel="environment" aria-label="环境工作区" hidden>
+              <section class="context-panel framework-band" aria-labelledby="contextTitle">
+                <div class="layer-head environment-titlebar">
+                  <div>
+                    <h3 id="contextTitle">环境研判</h3>
+                    <p>宏观、风险与月度配置只做确认，不覆盖价格趋势</p>
+                  </div>
+                  <span id="contextOverall">等待数据</span>
+                </div>
+                <div id="contextSummary" class="context-summary"></div>
+                <div id="dataQualityStrip" class="data-quality-strip" hidden></div>
+                <details class="context-details">
+                  <summary>宏观、风险和双动量明细</summary>
+                  <div class="context-detail-stack">
+                    <section class="macro-panel context-detail-section" aria-labelledby="macroTitle">
+                      <div class="layer-head">
+                        <h3 id="macroTitle">宏观环境</h3>
+                        <span id="macroOverall">等待数据</span>
+                      </div>
+                      <div id="macroEnvironment" class="macro-grid"></div>
+                      <p id="macroNote" class="framework-note"></p>
+                    </section>
+                    <section class="risk-panel context-detail-section" aria-labelledby="riskTitle">
+                      <div class="layer-head">
+                        <h3 id="riskTitle">风险温度</h3>
+                        <span id="riskOverall">等待数据</span>
+                      </div>
+                      <div id="riskLayer" class="risk-grid"></div>
+                    </section>
+                    <section class="momentum-panel context-detail-section" aria-labelledby="momentumTitle">
+                      <div class="layer-head">
+                        <h3 id="momentumTitle">双动量配置</h3>
+                        <span id="momentumReview">等待数据</span>
+                      </div>
+                      <div id="dualMomentum" class="momentum-grid"></div>
+                      <p id="momentumNote" class="momentum-note"></p>
+                    </section>
+                  </div>
+                </details>
+              </section>
+            </section>
+
+            <section class="workspace-view" data-view-panel="guide" aria-label="指标说明工作区" hidden>
+              <section id="indicatorGuide" class="indicator-guide guide-workspace-panel framework-band" aria-labelledby="guideTitle">
+                <div class="guide-workspace-head">
+                  <div>
+                    <span>判断顺序</span>
+                    <h3 id="guideTitle">指标说明</h3>
+                  </div>
+                  <p>先看价格趋势，再用环境确认风险，最后结合场外基金限制执行。</p>
+                </div>
+                <div class="decision-order">
+                  <div><strong>1</strong><span>价格趋势</span><small>决定状态和仓位方向</small></div>
+                  <div><strong>2</strong><span>环境确认</span><small>判断是否放大风险</small></div>
+                  <div><strong>3</strong><span>场外执行</span><small>结合限购和赎回成本</small></div>
+                </div>
+                <section class="strategy-rulebook" aria-labelledby="strategyRulebookTitle">
+                  <div class="guide-section-head strategy-rulebook-head">
+                    <div>
+                      <h3 id="strategyRulebookTitle">策略与仓位规则</h3>
+                      <span>先定方向，再定中枢，最后决定本期动作</span>
+                    </div>
+                  </div>
+                  <div class="strategy-chain" aria-label="仓位形成顺序">
+                    <div><span>日线</span><strong>六类趋势</strong><small>生成趋势上限</small></div>
+                    <div><span>月线</span><strong>双动量</strong><small>决定股债偏向</small></div>
+                    <div><span>合并</span><strong>策略中枢</strong><small>动量仓位受趋势约束</small></div>
+                    <div><span>执行</span><strong>本期仓位</strong><small>从实际仓位渐进靠拢</small></div>
+                  </div>
+                  <div class="rulebook-list">
+                    <details class="rulebook-row">
+                      <summary><span>01</span><strong>六类趋势与基础仓位</strong><small>6% 转向 · 3% 突破 · 200 日均线过滤</small></summary>
+                      <div class="rulebook-content">
+                        <div class="state-rule-grid" aria-label="六类趋势仓位和定投规则">
+                          <div class="state-rule up"><strong>上升趋势</strong><b>80%</b><small>正常定投 100%</small></div>
+                          <div class="state-rule up"><strong>自然回升</strong><b>35%</b><small>小额定投 50%</small></div>
+                          <div class="state-rule up secondary"><strong>次级回升</strong><b>20%</b><small>停止定投</small></div>
+                          <div class="state-rule down"><strong>自然回撤</strong><b>40%</b><small>小额定投 30%</small></div>
+                          <div class="state-rule down secondary"><strong>次级回撤</strong><b>55%</b><small>小额定投 50%</small></div>
+                          <div class="state-rule down"><strong>下降趋势</strong><b>0%</b><small>停止定投</small></div>
+                        </div>
+                        <ul class="compact-rule-list">
+                          <li>自然转向：距离阶段高低点约 6%；次级波动：约 3% 至 6%；突破关键点约 3% 才确认主趋势。</li>
+                          <li>价格低于 200 日均线时仓位上限 20%；均线空头且处于回升或回撤时上限 25%；跌破防守线时上限 20%。</li>
+                          <li>上升趋势且 50 日 &gt; 100 日 &gt; 200 日均线时，基础仓位可由 80% 提升到 90%。</li>
+                        </ul>
+                      </div>
+                    </details>
+                    <details class="rulebook-row">
+                      <summary><span>02</span><strong>双动量与策略中枢</strong><small>30 / 30 / 40 基准 · 月末比较 250 个交易日</small></summary>
+                      <div class="rulebook-content rulebook-columns">
+                        <div><span>长期基准</span><strong>A 股 30% · 美股 30% · 稳健 40%</strong><small>股票基金与债券货币总体保持 60 / 40。</small></div>
+                        <div><span>月度偏向</span><strong>强者 40% · 弱者 20% · 稳健 40%</strong><small>比较沪深 300 与纳指最近 250 个交易日收益；两者均为负时转向稳健 100%。</small></div>
+                        <div><span>策略中枢</span><strong>双动量结果 ∩ 趋势上限</strong><small>A 股和美股取两套规则中的较低值，剩余仓位进入债券与货币基金。</small></div>
+                      </div>
+                    </details>
+                    <details class="rulebook-row">
+                      <summary><span>03</span><strong>仓位过渡与风险例外</strong><small>当前仓位 → 本期执行仓位 → 策略中枢仓位</small></summary>
+                      <div class="rulebook-content rulebook-columns execution-rules">
+                        <div><span>机会出现</span><strong>每次 +5pp</strong><small>自然回升或上升趋势内的次级回撤，先小步靠近。</small></div>
+                        <div><span>趋势确认</span><strong>每次 +10pp</strong><small>确认上升趋势后加快靠近，但不一步跳到中枢。</small></div>
+                        <div><span>普通降温</span><strong>每次 -10pp</strong><small>策略中枢下降但未触发硬风险时渐进收缩。</small></div>
+                        <div><span>硬风险</span><strong>立即收缩</strong><small>确认下降趋势或跌破防守线，直接降至策略允许上限。</small></div>
+                      </div>
+                    </details>
+                    <details class="rulebook-row">
+                      <summary><span>04</span><strong>检查周期与场外执行</strong><small>日线响应 · 月度检查 · 季度调平</small></summary>
+                      <div class="rulebook-content">
+                        <div class="cadence-rule-grid">
+                          <div><span>每日</span><strong>只响应新机会与硬风险</strong></div>
+                          <div><span>月末</span><strong>调整新增资金和定投方向</strong></div>
+                          <div><span>季末</span><strong>3 / 6 / 9 / 12 月复核占比</strong></div>
+                        </div>
+                        <ul class="compact-rule-list">
+                          <li>偏离小于 2pp 不动；2 至 5pp 调整定投；达到 5pp 用新增资金调平。</li>
+                          <li>偏离达到 8pp 才核验赎回，并优先等待免赎窗口；限购时按可买额度分批执行。</li>
+                          <li>宏观、风险和 A 股观察地图只做环境确认，不覆盖价格趋势，也不单独生成买卖信号。</li>
+                        </ul>
+                      </div>
+                    </details>
+                  </div>
+                </section>
+                <section class="guide-section">
+                  <div class="guide-section-head">
+                    <h3>A 股观察地图</h3>
+                    <span>用于解释市场，不直接生成交易信号</span>
+                  </div>
+                  <div class="guide-grid" id="ashareObservationMap">
+                    <article><span>正在读取</span><strong>观察指标</strong></article>
+                  </div>
+                </section>
+              </section>
+            </section>
+          </section>
+        </section>
+      </section>
+    </main>
+    <dialog id="executionSettings" class="execution-settings fund-basket-settings" aria-labelledby="executionSettingsTitle">
+      <form id="executionSettingsForm" method="dialog">
+        <div class="guide-head">
+          <div>
+            <span id="executionSettingsSymbol">当前标的</span>
+            <h2 id="executionSettingsTitle">我的基金篮子</h2>
+          </div>
+          <button id="closeExecutionSettingsBtn" type="button" class="icon-button" aria-label="关闭基金篮子管理">×</button>
+        </div>
+        <p class="settings-intro">只记录三个篮子的实际占比。策略中枢由双动量与六类趋势共同确定；本期执行仓位根据日线机会、风险信号和过渡速度逐步靠近。</p>
+        <div class="rebalance-policy-summary" aria-label="调平周期规则">
+          <div><span>日线响应</span><strong>机会 +5 / +10pp</strong><small>硬风险立即收缩</small></div>
+          <div><span>月度检查</span><strong>每月最后一个工作日</strong><small>只调整新增资金与定投方向</small></div>
+          <div><span>季度调平</span><strong>3 / 6 / 9 / 12 月末</strong><small>正式复核三个篮子占比</small></div>
+          <div><span>触发区间</span><strong>&lt;2pp 不动 · 2–5pp 调定投 · ≥5pp 调平</strong><small>偏离 ≥8pp 且已免赎才核验卖出</small></div>
+        </div>
+        <div class="basket-budget-bar">
+          <div class="basket-target-summary">
+            <span>仓位校验</span>
+            <strong id="basketTargetStatus">尚未填写持仓占比</strong>
+          </div>
+        </div>
+        <div id="fundBasketEditor" class="fund-basket-editor"></div>
+        <p class="basket-storage-note">这些信息仅保存在当前浏览器。以前填写过的逐基金仓位会先自动汇总到对应篮子；保存后只保留三个篮子的持仓占比。</p>
+        <div class="settings-actions">
+          <button type="button" id="resetExecutionSettingsBtn" class="secondary-button">清空持仓</button>
+          <button type="submit" class="primary-button">保存持仓占比</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="/static-app.js"></script>
+  </body>
+</html>
